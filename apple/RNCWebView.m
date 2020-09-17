@@ -902,6 +902,34 @@ static NSDictionary* customCertificatesForHost;
   decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
                   decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
+  NSString *urlString = navigationAction.request.URL.absoluteString;
+
+  //앱설치 링크로 진입시 별도 처리(https://itunes.apple.com/kr/app/id~~~~~~)
+  if ([urlString hasPrefix:@"https://itunes.apple.com"]) {
+    //스토어 연결(OS에서 처리)
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
+       
+    //웹뷰 내 페이지 이동 안하도록 설정(PolicyCancel)
+    decisionHandler(WKNavigationActionPolicyCancel);
+    return;
+    
+  } else if ([urlString hasPrefix:@"tauthlink"] || [urlString hasPrefix:@"ktauthexternalcall"]
+    || [urlString hasPrefix:@"upluscorporation"]  || [urlString hasPrefix:@"niceipin2"]) {
+    
+    //외부 앱 Scheme로 URL이 시작되는 경우
+    //tauthLink(SKT PASS 인증앱)
+    //ktauthexternalcall(KT PASS 인증앱)
+    //upluscorporation(LGU+ PASS 인증앱)
+    //회원사에서 추가로 연동하고 싶은 앱스키마가 있다면 or 조건에 추가 해주세요. (예시 : niceipin2 )
+
+    //앱 실행
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
+    
+    //웹뷰 내 페이지 이동 안하도록 설정(PolicyCancel)
+    decisionHandler(WKNavigationActionPolicyCancel);
+    return;
+  }
+
   static NSDictionary<NSNumber *, NSString *> *navigationTypes;
   static dispatch_once_t onceToken;
 
